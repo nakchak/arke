@@ -7,18 +7,18 @@
       "text": "DeviceConnected",
       "color": "lightgreen",
       "category": "DeviceConnected",
-      "properties": { "Direction": "" },
+      "properties": { "Direction": "Incoming" },
       "description": "Must be first step, fires when device connects",
-      "outArray": [ { "portId": "nextStep" } ],
-      "key": -1
+      "outArray": [ { "portId": "NextStep" } ],
+      "key": 0
     },
     {
       "text": "DisconnectDevice",
       "color": "salmon",
       "category": "DisconnectDevice",
       "properties": {
-        "Direction": "",
-        "HangUp": ""
+        "Direction": "BOTH",
+        "HangUp": false
       },
       "description": "Ends the call flow",
       "inArray": [ { "portId": "IN" } ],
@@ -53,8 +53,8 @@
       "category": "PlayPrompt",
       "properties": {
         "IsInterruptible": true,
-        "Prompts": ["welcome"],
-        "Arke.DSL.Step.Direction":  "Incoming"
+        "Prompts": ["hello","zombies"],
+        "Direction":  "Incoming"
       },
       "description": "Plays a series of prompts to the line or conference.",
       "inArray": [ "IN" ],
@@ -66,14 +66,13 @@
       "color": "lightblue",
       "category": "GetInput",
       "properties": {
-        "Options": [ { "Input": 1, "NextStep": -8 } ],
+        "Options": { "Input": 1, "NextStep": -8 },
         "MaxDigitTimeoutInSeconds": 5,
         "NumberOfDigitsToWaitForNextStep": 1,
         "TerminationDigit": "",
         "SetValueAsDestination": false,
         "SetValueAs": "",
         "MaxAttempts": 3,
-        "SetValueAs": "",
         "Direction": "Incoming"
       },
       "description": "Gets input from the user.",
@@ -86,68 +85,30 @@
       ],
       "key": -10
     },
-          {
+    {
       "text": "CheckAttemptStep",
       "color": "lightblue",
       "category": "CheckAttemptStep",
-      "properties": [
-        {
-          "type": "System.Int32",
-          "name": "MaxAttempts",
-          "values": null,
-          "key": null,
-          "value": null,
-          "isArray": false
+      "properties": {
+        "MaxAttempts": 5,
+        "Direction": "Incoming",
       },
-      "description": "Plays a prompt or series of prompts to a line",
-      "inArray": [
-        {
-          "type": "Arke.DSL.Step.Direction",
-          "name": "Direction",
-          "values": [ "Incoming", "Outgoing", "Both" ],
-          "key": null,
-          "value": null,
-          "isArray": false
-        }
-      ],
-      "description": "Check if the number of attempts at an input have been exceeded.",
       "inArray": [ "IN" ],
       "outArray": [
-        { "portId": "NextStep" },
-        { "portId": "MaxAttemptsStep" }
+          { "portId": "NextStep" },
+          { "portId": "MaxAttemptsStep" }
       ],
       "key": -14
-        },
-        {
+    },
+    {
       "text": "PlayPrompt",
       "color": "lightblue",
       "category": "PlayPrompt",
-      "properties": [
-        {
-          "type": "System.Boolean",
-          "name": "IsInterruptible",
-          "values": null,
-          "key": null,
-          "value": null,
-          "isArray": false
-        },
-        {
-          "type": "string[]",
-          "name": "Prompts",
-          "values": null,
-          "key": null,
-          "value": null,
-          "isArray": true
-        },
-        {
-          "type": "Arke.DSL.Step.Direction",
-          "name": "Direction",
-          "values": [ "Incoming", "Outgoing", "Both" ],
-          "key": null,
-          "value": null,
-          "isArray": false
-        }
-      ],
+      "properties": {
+        "IsInterruptible": true,
+        "Prompts": ["carried-away-by-monkeys"],
+        "Direction": "Incoming"
+      },
       "description": "Plays a series of prompts to the line or conference.",
       "inArray": [ "IN" ],
       "outArray": [ { "portId": "NextStep" } ],
@@ -157,34 +118,11 @@
       "text": "Transfer",
       "color": "lightblue",
       "category": "Transfer",
-      "properties": [
-        {
-          "type": "System.String",
-          "name": "Endpoint",
-          "values": null,
-          "key": null,
-          "value": null,
-          "isArray": false
+      "properties": {
+        "Endpoint": "",
+        "DialString": "",
+        "Direction": "Incoming"
       },
-      "description": "Plays a prompt or series of prompts to a line",
-      "inArray": [
-        {
-          "type": "System.String",
-          "name": "DialString",
-          "values": null,
-          "key": null,
-          "value": null,
-          "isArray": false
-        },
-        {
-          "type": "Arke.DSL.Step.Direction",
-          "name": "Direction",
-          "values": [ "Incoming", "Outgoing", "Both" ],
-          "key": null,
-          "value": null,
-          "isArray": false
-        }
-      ],
       "description": "Transfers a call to a new endpoint in Asterisk.",
       "inArray": [ "IN" ],
       "outArray": [ { "portId": "NextStep" } ],
@@ -194,16 +132,9 @@
       "text": "CallLoop",
       "color": "lightblue",
       "category": "CallLoop",
-      "properties": [
-        {
-          "type": "Arke.DSL.Step.Direction",
-          "name": "Direction",
-          "values": [ "Incoming", "Outgoing", "Both" ],
-          "key": null,
-          "value": null,
-          "isArray": false
-        }
-      ],
+      "properties": {
+          "Direction": "Incoming"
+      },
       "description": "Process a call loop waiting for max time limits.",
       "inArray": [ "IN" ],
       "outArray": [
@@ -215,9 +146,9 @@
   ],
   "linkDataArray": [
     {
-      "from": -1,
+      "from": 0,
       "to": -6,
-      "fromPort": "nextStep",
+      "fromPort": "NextStep",
       "toPort": ""
     },
     {
@@ -246,32 +177,14 @@
     },
     {
       "from": -10,
-      "to": -7,
+      "to": -2,
       "fromPort": "MaxAttemptsReachedStep",
       "toPort": ""
     },
     {
       "from": -14,
-      "to": -7,
+      "to": -6,
       "fromPort": "MaxAttemptsStep",
-      "toPort": ""
-    },
-    {
-      "from": -7,
-      "to": -2,
-      "fromPort": "NextStep",
-      "toPort": "IN"
-    },
-    {
-      "from": -10,
-      "to": -8,
-      "fromPort": "NextStep",
-      "toPort": ""
-    },
-    {
-      "from": -8,
-      "to": -15,
-      "fromPort": "NextStep",
       "toPort": ""
     },
     {

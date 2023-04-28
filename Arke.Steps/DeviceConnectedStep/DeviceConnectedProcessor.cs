@@ -18,7 +18,7 @@ namespace Arke.Steps.DeviceConnectedStep
             call.Logger.Debug("Next step " + step.GetStepFromConnector(NextStep));
             call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(NextStep));
             call.CallState.TimeDeviceConnected = DateTimeOffset.Now;
-            await call.FireStateChange(Trigger.NextCallFlowStep);
+            //await call.FireStateChange(Trigger.StartCallFlow);
         }
     }
 }

@@ -2,6 +2,7 @@
 using Arke.DSL.Step;
 using Arke.DSL.Step.Settings;
 using Arke.SipEngine.CallObjects;
+using Arke.SipEngine.FSM;
 using Arke.SipEngine.Processors;
 
 namespace Arke.Steps.PlayPromptStep
@@ -12,16 +13,16 @@ namespace Arke.Steps.PlayPromptStep
         public string Name => "PlayPrompt";
         private Direction _direction;
 
-        public Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall call)
         {
             var stepSettings = (PlayPromptSettings) step.NodeData.Properties;
             call.StepSettings = stepSettings;
             _direction = stepSettings.Direction;
             var nextStep = step.GetStepFromConnector(NextStep);
             call.Logger.Debug("Next step {stepId} {@Call}",nextStep, call.CallState);
-            call.PromptPlayer.DoStepAsync(stepSettings.GetPromptPlayerSettings(step, stepSettings.Direction));
+            await call.PromptPlayer.DoStepAsync(stepSettings.GetPromptPlayerSettings(step, stepSettings.Direction));
             AddStepToProperQueue(nextStep, call);
-            return Task.CompletedTask;
+            await call.FireStateChange(Trigger.PlayInterruptiblePrompt);
         }
 
         public void AddStepToProperQueue(int step, ICall call)

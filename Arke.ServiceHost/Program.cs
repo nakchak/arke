@@ -105,6 +105,7 @@ namespace Arke.ServiceHost
         private static void LoadPlugins()
         {
             _pluginDirectory = ArkeCallFlowService.GetConfigValue("appSettings:PluginDirectory");
+            if (!Directory.Exists(_pluginDirectory)) Directory.CreateDirectory(_pluginDirectory);
             var assemblies =
                 from file in new DirectoryInfo(_pluginDirectory).GetFiles()
                 where string.Equals(file.Extension, ".dll", StringComparison.InvariantCultureIgnoreCase)

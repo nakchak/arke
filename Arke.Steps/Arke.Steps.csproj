@@ -36,6 +36,6 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Copy SourceFiles="$(ProjectDir)$(OutDir)Arke.Steps.dll" DestinationFolder="$(SolutionDir)\Arke.ServiceHost\bin\$(ConfigurationName)\net5.0\Plugins\" />
+    <Copy SourceFiles="$(ProjectDir)$(OutDir)Arke.Steps.dll" DestinationFolder="$(SolutionDir)\Arke.ServiceHost\bin\$(ConfigurationName)\net6.0\Plugins\" />
   </Target>
 </Project>

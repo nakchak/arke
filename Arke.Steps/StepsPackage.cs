@@ -13,6 +13,7 @@ using Arke.Steps.PlayPromptStep;
 using Arke.Steps.PlayValueStep;
 using Arke.Steps.StartRecordingStep;
 using Arke.Steps.StopRecordingStep;
+using Arke.Steps.TransferStep;
 using SimpleInjector;
 using SimpleInjector.Packaging;
 
@@ -43,6 +44,7 @@ namespace Arke.Steps
             container.Register<PlayValueStepProcessor>();
             container.Register<StartRecordingLineProcessor>();
             container.Register<StopRecordingProcessor>();
+            container.Register<TransferProcessor>();
         }
 
         private void RegisterSettings(Container container)
@@ -62,6 +64,7 @@ namespace Arke.Steps
             container.Register<PlayValueStepSettings>();
             container.Register<StartRecordingLineSettings>();
             container.Register<StopRecordingSettings>();
+            container.Register<TransferSettings>();
         }
     }
 }

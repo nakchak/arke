@@ -131,7 +131,9 @@ namespace Arke.IVR
             });
         
             // call answered and started
-            await line.RunCallScriptAsync(_cancellationToken);
+#pragma warning disable CS4014 // We don't want to wait for this thread to complete, we need to keep processing further calls
+            Task.Run(async () => await line.RunCallScriptAsync(_cancellationToken), _cancellationToken);
+#pragma warning restore CS4014
             _logger.Information("Call Setup Script Complete", new { ChannelId = e.Channel.Id });
         }
 

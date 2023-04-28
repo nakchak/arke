@@ -54,7 +54,7 @@ namespace Arke.DSL.Step
 
         private void SetDirection(string direction)
         {
-            switch (direction)
+            switch (direction.ToUpperInvariant())
             {
                 case "INCOMING":
                     Direction = Direction.Incoming;

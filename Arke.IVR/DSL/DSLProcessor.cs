@@ -38,9 +38,7 @@ namespace Arke.IVR.DSL
 
             var stepProcessor = ObjectContainer.GetInstance().GetObjectInstance(stepType);
             _call.Logger.Debug($"{_call.CallId}: Processing Step: {stepType.FullName}");
-#pragma warning disable CS4014 // We do not want to wait to continue execution here.
-            Task.Run(() => ((IStepProcessor) stepProcessor).DoStepAsync(step, _call));
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            await ((IStepProcessor) stepProcessor).DoStepAsync(step, _call);
         }
     }
 }
