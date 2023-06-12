@@ -10,6 +10,7 @@ using Arke.DependencyInjection;
 using Arke.DSL.Extensions;
 using Arke.DSL.Step;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Arke.ManagementApi.Controllers
@@ -20,6 +21,7 @@ namespace Arke.ManagementApi.Controllers
     public class StepsController : ControllerBase
     {
         [HttpGet]
+        [EnableCors("ArkeAllowedOrigins")]
         public async Task<List<StepDescription>> GetSteps()
         {
             var steps = new List<Type>();
