@@ -13,7 +13,7 @@ namespace Arke.Steps.SetValueStep
     {
         public string Name => "SetValueStep";
         private const string next_step = "NextStep";
-        public Task DoStepAsync(Step step, ICall call)
+        public Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             if (!(step.NodeData.Properties is SetValueStepSettings))
                 throw new ArgumentException("SetValueStep called with invalid settings");
@@ -24,13 +24,13 @@ namespace Arke.Steps.SetValueStep
             switch (settings.Direction)
             {
                 case Direction.Incoming:
-                    call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(next_step));
+                    call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(next_step));
                     break;
                 case Direction.Outgoing:
-                    call.CallState.AddStepToOutgoingQueue(step.GetStepFromConnector(next_step));
+                    call.AddStepToOutgoingProcessQueue(step.GetStepFromConnector(next_step));
                     break;
                 case Direction.Both:
-                    call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(next_step));
+                    call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(next_step));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

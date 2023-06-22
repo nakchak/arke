@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using Microsoft.Extensions.PlatformAbstractions;
+using System.Runtime.CompilerServices;
 using Serilog;
 
 namespace Arke.SipEngine.BridgeName
@@ -79,18 +79,16 @@ namespace Arke.SipEngine.BridgeName
         public static string GetDevFilePathForWordFiles()
         {
             //return "c:\\ArtemisConfig\\";
-            var path = PlatformServices.Default.Application.ApplicationBasePath;
+            var path = Directory.GetCurrentDirectory();
             const string textFilesFolder = "TextFilesForBridgeName";
-            var workingFolder = path + textFilesFolder;
             var file = Path.Combine(path, textFilesFolder);
             return file;
         }
 
         private static string GetFilePathForWordFiles()
         {
-            var path = PlatformServices.Default.Application.ApplicationBasePath;
+            var path = Directory.GetCurrentDirectory();
             const string textFilesFolder = "TextFilesForBridgeName";
-            var workingFolder = path + textFilesFolder;
             var file = Path.Combine(path, textFilesFolder);
             return file;
         }

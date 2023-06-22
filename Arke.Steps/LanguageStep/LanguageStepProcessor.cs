@@ -21,7 +21,7 @@ namespace Arke.Steps.LanguageStep
         private const int MaxRetries = 3;
         private const string NextStep = "NextStep";
 
-        private ICall _call;
+        private ICall<ICallInfo> _call;
         private readonly Timer _inputTimeout;
         private ILanguageSelectionPromptPlayer _promptPlayer;
         private int _currentRetryCount;
@@ -40,7 +40,7 @@ namespace Arke.Steps.LanguageStep
             _currentRetryCount = 0;
         }
 
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             _promptPlayer = call.LanguageSelectionPromptPlayer;
             _promptPlayer.SetStepProcessor(this);
@@ -73,9 +73,9 @@ namespace Arke.Steps.LanguageStep
         private void DTMF_ReceivedEvent(ISipApiClient sipApiClient, DtmfReceivedEvent e)
         {
             if (!LogData.ContainsKey(e.LineId))
-                LogData.Add(e.LineId, _call.CallState.GetIncomingLineId());
+                LogData.Add(e.LineId, _call.CallState.IncomingSipChannel.Id as string);
 
-            if (_call.CallState != null && e.LineId != _call.CallState.GetIncomingLineId())
+            if (_call.CallState != null && e.LineId != _call.CallState.IncomingSipChannel.Id as string)
                 return;
 
             try
@@ -99,7 +99,7 @@ namespace Arke.Steps.LanguageStep
         {
             _promptPlayer.HaltPromptPlayback();
             CleanupEventHooks();
-            _call.AddStepToProcessQueue(_step.GetStepFromConnector(NextStep));
+            _call.AddStepToIncomingProcessQueue(_step.GetStepFromConnector(NextStep));
             _call.FireStateChange(Trigger.NextCallFlowStep);
         }
 

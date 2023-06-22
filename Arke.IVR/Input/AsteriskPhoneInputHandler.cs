@@ -14,11 +14,11 @@ namespace Arke.IVR.Input
 {
     public class AsteriskPhoneInputHandler : IPhoneInputHandler
     {
-        private readonly ICall _call;
+        private readonly ICall<ICallInfo> _call;
         private readonly IPromptPlayer _promptPlayer;
         private PhoneInputHandlerSettings _settings;
 
-        public AsteriskPhoneInputHandler(ICall call, IPromptPlayer promptPlayer)
+        public AsteriskPhoneInputHandler(ICall<ICallInfo> call, IPromptPlayer promptPlayer)
         {
             _call = call;
             _promptPlayer = promptPlayer;
@@ -105,12 +105,12 @@ namespace Arke.IVR.Input
             switch (Direction)
             {
                 case Direction.Incoming:
-                    return (dtmfReceivedEvent.LineId == _call.CallState.GetIncomingLineId());
+                    return (dtmfReceivedEvent.LineId == _call.CallState.IncomingSipChannel.Id as string);
                 case Direction.Outgoing:
-                    return (dtmfReceivedEvent.LineId == _call.CallState.GetOutgoingLineId());
+                    return (dtmfReceivedEvent.LineId == _call.CallState.OutgoingSipChannel.Id as string);
                 case Direction.Both:
-                    return (dtmfReceivedEvent.LineId == _call.CallState.GetIncomingLineId()
-                        || dtmfReceivedEvent.LineId == _call.CallState.GetOutgoingLineId());
+                    return (dtmfReceivedEvent.LineId == _call.CallState.IncomingSipChannel.Id as string
+                        || dtmfReceivedEvent.LineId == _call.CallState.OutgoingSipChannel.Id as string);
                 default:
                     return false;
             }
@@ -144,17 +144,17 @@ namespace Arke.IVR.Input
             switch (Direction)
             {
                 case Direction.Both:
-                    _call.CallState.AddStepToIncomingQueue(step);
-                    _call.CallState.AddStepToOutgoingQueue(step);
+                    _call.AddStepToIncomingProcessQueue(step);
+                    _call.AddStepToOutgoingProcessQueue(step);
                     break;
                 case Direction.Incoming:
-                    _call.CallState.AddStepToIncomingQueue(step);
+                    _call.AddStepToIncomingProcessQueue(step);
                     break;
                 case Arke.DSL.Step.Direction.Outgoing:
-                    _call.CallState.AddStepToOutgoingQueue(step);
+                    _call.AddStepToOutgoingProcessQueue(step);
                     break;
                 default:
-                    _call.CallState.AddStepToIncomingQueue(step);
+                    _call.AddStepToIncomingProcessQueue(step);
                     break;
             }
         }

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.ServiceModel;
 using System.Threading.Tasks;
 using Arke.DSL.Step;
 using Arke.SipEngine.Api;
 using Arke.SipEngine.CallObjects;
+using Arke.SipEngine.Exceptions;
 using Arke.SipEngine.Processors;
 
 namespace Arke.Steps.ArkeInitStep
@@ -13,7 +13,7 @@ namespace Arke.Steps.ArkeInitStep
         private const string FailStep = "FailStep";
         private const string NextStep = "NextStep";
         private readonly ISipLineApi _sipLineApi;
-        private ICall _call;
+        private ICall<ICallInfo> _call;
         private ArkeInitSettings _settings;
 
         public string Name => "ArkeInit";
@@ -23,7 +23,7 @@ namespace Arke.Steps.ArkeInitStep
             _sipLineApi = sipLineApi;
         }
 
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             _settings = (ArkeInitSettings) step.NodeData.Properties;
             _call = call;
@@ -31,15 +31,15 @@ namespace Arke.Steps.ArkeInitStep
             {
                 await SetEndpointFromChannelVariable();
             }
-            catch (Exception ex) when (ex is EndpointNotFoundException)
+            catch (Exception e) when (e is NotFoundException)
             {
                 _call.CallState.TerminationCode = TerminationCode.InvalidDeviceConfig;
-                _call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(FailStep));
+                _call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(FailStep));
                 await _call.FireStateChange(SipEngine.FSM.Trigger.FailedCallFlow);
                 return;
             }
             
-            _call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(NextStep));
+            _call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(NextStep));
             await _call.FireStateChange(SipEngine.FSM.Trigger.NextCallFlowStep);
         }
 
@@ -55,15 +55,15 @@ namespace Arke.Steps.ArkeInitStep
             try
             {
                 _call.CallState.Endpoint =
-                    await _sipLineApi.GetEndpointAsync(_call.CallState.GetIncomingLineId());
+                    await _sipLineApi.GetEndpointAsync(_call.CallState.IncomingSipChannel.Id as string);
                 _call.CallState.PortId =
-                    await _sipLineApi.GetLineVariableAsync(_call.CallState.GetIncomingLineId(),
+                    await _sipLineApi.GetLineVariableAsync(_call.CallState.IncomingSipChannel.Id as string,
                     "CALLERID(num)");
             }
             catch (Exception ex)
             {
                 _call.Logger.Error(ex, "Exception getting the Endpoint from ARI {@Call}", _call.CallState);
-                throw new EndpointNotFoundException("Exception getting the Endpoint from ARI", ex);
+                throw new NotFoundException("Exception getting the Endpoint from ARI", ex);
             }
         }
     }

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Arke.IntegrationApi.CallObjects;
 using Arke.SipEngine.CallObjects;
 using Stateless;
 
@@ -6,11 +7,11 @@ namespace Arke.SipEngine.FSM
 {
     public class CallStateMachine : IStateMachine
     {
-        private readonly ICall _call;
+        private readonly ICall<ICallInfo> _call;
         private readonly IPromptPlayer _promptPlayer;
         public StateMachine<State, Trigger> StateMachine { get; set; }
 
-        public CallStateMachine(ICall call, IPromptPlayer promptPlayer)
+        public CallStateMachine(ICall<ICallInfo> call, IPromptPlayer promptPlayer)
         {
             _call = call;
             _promptPlayer = promptPlayer;

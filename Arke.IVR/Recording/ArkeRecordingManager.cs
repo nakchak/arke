@@ -12,9 +12,9 @@ namespace Arke.IVR.Recording
         private readonly ISipRecordingApi _ariClient;
         private readonly Dictionary<string, string> _recordingsInProgress = new Dictionary<string, string>();
         private readonly string _creationDateTime;
-        private readonly ICall _call;
+        private readonly ICall<ICallInfo> _call;
 
-        public ArkeRecordingManager(ISipRecordingApi ariClient, ICall call)
+        public ArkeRecordingManager(ISipRecordingApi ariClient, ICall<ICallInfo> call)
         {
             _ariClient = ariClient;
             _call = call;
@@ -56,7 +56,7 @@ namespace Arke.IVR.Recording
 
         public string GetFileName(string lineId, string direction, ICallInfo callState)
         {
-            return $"{ArkeCallFlowService.Configuration.GetSection("appSettings:ArkeServerID").Value}_{lineId}_{_creationDateTime}_{direction}";
+            return $"{ArkeCallFlowService<ICallInfo>.Configuration.GetSection("appSettings:ArkeServerID").Value}_{lineId}_{_creationDateTime}_{direction}";
         }
 
         public async Task StopAllRecordings()

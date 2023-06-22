@@ -12,9 +12,9 @@ namespace Arke.IVR.DSL
     public class DslProcessor
     {
         public Dictionary<int,Step> Dsl { get; set; }
-        private readonly ICall _call;
+        private readonly ICall<ICallInfo> _call;
 
-        public DslProcessor(ICall call)
+        public DslProcessor(ICall<ICallInfo> call)
         {
             _call = call;
             Dsl = new Dictionary<int, Step>();

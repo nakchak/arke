@@ -1,4 +1,4 @@
-﻿namespace Arke.SipEngine.CallObjects
+﻿namespace Arke.IntegrationApi.CallObjects
 {
     public interface ISipChannel
     {

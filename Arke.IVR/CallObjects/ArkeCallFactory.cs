@@ -7,18 +7,14 @@ namespace Arke.IVR.CallObjects
 {
     public static class ArkeCallFactory
     {
-        public static ICall CreateArkeCall(Channel channel)
+        public static ICall<ICallInfo> CreateArkeCall(Channel channel)
         {
-            var call = ObjectContainer.GetInstance().GetObjectInstance<ICall>();
+            var call = ObjectContainer.GetInstance().GetObjectInstance<ICall<ICallInfo>>();
             call.CallId = Guid.NewGuid();
-            call.CallState = new ArkeCallState()
-                {
-                    IncomingSipChannel = new ArkeSipChannel
-                    {
-                        Channel = channel
-                    },
-                    CallCanBeAbandoned = true,
-                };
+            call.CallState = ObjectContainer.GetInstance().GetObjectInstance<ICallInfo>();
+            call.CallState.IncomingSipChannel = new ArkeSipChannel { Channel = channel };
+            call.CallState.CallCanBeAbandoned = true;
+
             return call;
         }
     }

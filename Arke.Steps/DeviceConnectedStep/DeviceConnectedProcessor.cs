@@ -12,11 +12,11 @@ namespace Arke.Steps.DeviceConnectedStep
         public string Name => "DeviceConnected";
         private const string NextStep = "NextStep";
 
-        public virtual async Task DoStepAsync(Step step, ICall call)
+        public virtual async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             call.Logger.Information("Call flow begin for call {@Call}", call.CallState);
             call.Logger.Debug("Next step " + step.GetStepFromConnector(NextStep));
-            call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(NextStep));
+            call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(NextStep));
             call.CallState.TimeDeviceConnected = DateTimeOffset.Now;
             //await call.FireStateChange(Trigger.StartCallFlow);
         }

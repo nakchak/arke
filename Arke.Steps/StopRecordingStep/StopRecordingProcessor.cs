@@ -12,19 +12,19 @@ namespace Arke.Steps.StopRecordingStep
         public string Name => "StopRecording";
         private const string NextStep = "NextStep";
 
-        public async Task DoStepAsync(Step settings, ICall call)
+        public async Task DoStepAsync(Step settings, ICall<ICallInfo> call)
         {
-            call.Logger.Information("Stop recording {LineId} {@Call}", call.CallState, call.CallState.GetIncomingLineId());
-            await call.RecordingManager.StopRecordingOnLine(call.CallState.GetIncomingLineId());
+            call.Logger.Information("Stop recording {LineId} {@Call}", call.CallState, call.CallState.IncomingSipChannel.Id);
+            await call.RecordingManager.StopRecordingOnLine(call.CallState.IncomingSipChannel.Id as string);
             GoToNextStep(call, settings);
         }
         
-        public void GoToNextStep(ICall call, Step step)
+        public void GoToNextStep(ICall<ICallInfo> call, Step step)
         {
             if (step.NodeData.Properties.Direction != Direction.Outgoing)
-                call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(NextStep));
+                call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(NextStep));
             else
-                call.CallState.AddStepToOutgoingQueue(step.GetStepFromConnector(NextStep));
+                call.AddStepToOutgoingProcessQueue(step.GetStepFromConnector(NextStep));
             call.FireStateChange(Trigger.NextCallFlowStep);
         }
     }

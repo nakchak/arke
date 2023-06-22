@@ -10,13 +10,13 @@ namespace Arke.Steps.StartRecordingStep
 {
     public class StartRecordingLineProcessor : IStepProcessor
     {
-        private ICall _call;
+        private ICall<ICallInfo> _call;
         private Step _step;
         private const string NextStep = "NextStep";
 
         public string Name => "StartRecordingLine";
         
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             _call = call;
             _step = step;
@@ -64,36 +64,36 @@ namespace Arke.Steps.StartRecordingStep
         {
             var stepSettings = _step.NodeData.Properties as StartRecordingLineSettings;
             if (stepSettings.Direction != Direction.Outgoing)
-                _call.CallState.AddStepToIncomingQueue(_step.GetStepFromConnector(NextStep));
+                _call.AddStepToIncomingProcessQueue(_step.GetStepFromConnector(NextStep));
             else
-                _call.CallState.AddStepToOutgoingQueue(_step.GetStepFromConnector(NextStep));
+                _call.AddStepToOutgoingProcessQueue(_step.GetStepFromConnector(NextStep));
             _call.FireStateChange(Trigger.NextCallFlowStep);
         }
 
         public async Task StartRecordingOnInboundLine()
         {
-            if (_call.CallState.GetIncomingLineId() != null)
+            if (_call.CallState.IncomingSipChannel?.Id != null)
             {
-                _call.Logger.Information("Start recording on inbound line {@Call} {LineId}", _call.CallState, _call.CallState.GetIncomingLineId());
-                await _call.StartRecordingOnLineAsync(_call.CallState.GetIncomingLineId(), "I");
+                _call.Logger.Information("Start recording on inbound line {@Call} {LineId}", _call.CallState, _call.CallState.IncomingSipChannel.Id);
+                await _call.StartRecordingOnLineAsync(_call.CallState.IncomingSipChannel.Id as string, "I");
             }
         }
 
         public async Task StartRecordingOnOuboundLine()
         {
-            if (_call.CallState.GetOutgoingLineId() != null)
+            if (_call.CallState.OutgoingSipChannel?.Id != null)
             {
-                _call.Logger.Information("Start recording on outbound line {@Call} {LineId}", _call.CallState, _call.CallState.GetOutgoingLineId());
-                await _call.StartRecordingOnLineAsync(_call.CallState.GetOutgoingLineId(), "O");
+                _call.Logger.Information("Start recording on outbound line {@Call} {LineId}", _call.CallState, _call.CallState.OutgoingSipChannel.Id);
+                await _call.StartRecordingOnLineAsync(_call.CallState.OutgoingSipChannel.Id as string, "O");
             }            
         }
 
         public async Task StartRecordingOnBridge()
         {
-            if (_call.CallState.GetBridgeId() != null)
+            if (_call.CallState.Bridge?.Id != null)
             {
-                _call.Logger.Information("Start recording on bridge: {@Call} {BridgeId}", _call.CallState, _call.CallState.GetBridgeId());
-                await _call.StartRecordingOnBridgeAsync(_call.CallState.GetBridgeId());
+                _call.Logger.Information("Start recording on bridge: {@Call} {BridgeId}", _call.CallState, _call.CallState.Bridge.Id);
+                await _call.StartRecordingOnBridgeAsync(_call.CallState.Bridge.Id);
             }
         }
     }

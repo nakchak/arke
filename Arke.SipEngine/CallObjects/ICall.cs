@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Arke.DSL.Step;
+using Arke.IntegrationApi.CallObjects;
 using Arke.SipEngine.Api;
 using Arke.SipEngine.Bridging;
 using Arke.SipEngine.Device;
@@ -14,10 +15,10 @@ using Serilog;
 
 namespace Arke.SipEngine.CallObjects
 {
-    public interface ICall
+    public interface ICall<T>
     {
         Guid CallId { get; set; }
-        ICallInfo CallState { get; set; }
+        T CallState { get; set; }
         Dictionary<string,string> LogData { get; }
         ILogger Logger { get; }
         NodeProperties StepSettings { get; set; }
@@ -36,9 +37,10 @@ namespace Arke.SipEngine.CallObjects
         Task StartCallRecordingAsync();
         Task StopCallRecordingAsync();
         Task FireStateChange(Trigger trigger);
-        void AddStepToProcessQueue(int stepNumber);
+        void AddStepToIncomingProcessQueue(int stepNumber);
+        void AddStepToOutgoingProcessQueue(int stepNumber);
         State GetCurrentState();
-        event Action<ICall, OnWorkflowStepEvent> OnWorkflowStep;
+        event Action<ICall<T>, OnWorkflowStepEvent> OnWorkflowStep;
         void SetCallLanguage(LanguageData languageData);
         Task<IBridge> CreateBridgeAsync(BridgeType bridgeType);
         Task StopHoldingBridgeAsync();
@@ -47,5 +49,7 @@ namespace Arke.SipEngine.CallObjects
         Task StartRecordingOnBridgeAsync(string bridgeId);
         void SetWorkflow(Workflow deviceWorkflow);
         Task ForceCallEndAsync();
+        Task<ISipChannel> CreateTransferLine(object transferLine);
+        Task<ISipChannel> CreateOutgoingLine(object outgoingLine);
     }
 }

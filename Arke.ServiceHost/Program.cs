@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
 using Arke.DependencyInjection;
+using Arke.IntegrationApi.CallObjects;
 using Arke.IVR;
 using Arke.IVR.CallObjects;
 using Arke.SipEngine;
@@ -29,10 +30,10 @@ namespace Arke.ServiceHost
         private static ArkeSipApiClient _sipApi;
         private static string _pluginDirectory = "/app";
         private static IConfiguration _configuration;
-        private static ICallFlowService _service;
+        private static ICallFlowService<ICallInfo> _service;
         private static CancellationTokenSource _cancellationToken;
 
-        public static ICallFlowService GetCurrentCallEngine() => _service;
+        public static ICallFlowService<ICallInfo> GetCurrentCallEngine() => _service;
 
         public static void Main(string[] args)
         {
@@ -65,7 +66,17 @@ namespace Arke.ServiceHost
 
             _logger.Information("Verifying DI Container", new { DIContainer = "SimpleInjector" });
             ObjectContainer.GetInstance().Verify();
-            _service = ObjectContainer.GetInstance().GetObjectInstance<ICallFlowService>();
+
+            try
+            {
+                _service = (ICallFlowService<ICallInfo>)ObjectContainer.GetInstance().GetObjectInstance(typeof(ICallFlowService<ICallInfo>));
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal("Error attempting to build a Call Flow Engine. Please create a Plugin according to the project instructions and deploy it to the plugins folder.");
+                return;
+            }
+            
             _service.Start(_cancellationToken.Token);
             AssemblyLoadContext.Default.Unloading += SigTermEventHandler;
             Console.CancelKeyPress += CancelHandler;
@@ -104,7 +115,7 @@ namespace Arke.ServiceHost
 
         private static void LoadPlugins()
         {
-            _pluginDirectory = ArkeCallFlowService.GetConfigValue("appSettings:PluginDirectory");
+            _pluginDirectory = ArkeCallFlowService<ICallInfo>.GetConfigValue("appSettings:PluginDirectory");
             if (!Directory.Exists(_pluginDirectory)) Directory.CreateDirectory(_pluginDirectory);
             var assemblies =
                 from file in new DirectoryInfo(_pluginDirectory).GetFiles()
@@ -117,19 +128,19 @@ namespace Arke.ServiceHost
         private static void InitializeConfigurationFileDependencies()
         {
             _configuration = GetAppSettingsByHostName();
-            ArkeCallFlowService.Configuration = _configuration;
+            ArkeCallFlowService<ICallInfo>.Configuration = _configuration;
         }
         
         public static void SetupAriEndpoint()
         {
             _logger.Information("Creating Endpoint");
-            var appName = ArkeCallFlowService.Configuration.GetSection("appSettings:AsteriskAppName").Value;
+            var appName = ArkeCallFlowService<ICallInfo>.Configuration.GetSection("appSettings:AsteriskAppName").Value;
 
             var endpoint = new StasisEndpoint(
-                ArkeCallFlowService.Configuration.GetSection("appSettings:AsteriskHost").Value,
-                int.Parse(ArkeCallFlowService.Configuration.GetSection("appSettings:AriPort").Value),
-                ArkeCallFlowService.Configuration.GetSection("appSettings:AsteriskUser").Value,
-                ArkeCallFlowService.Configuration.GetSection("appSettings:AsteriskPassword").Value
+                ArkeCallFlowService<ICallInfo>.Configuration.GetSection("appSettings:AsteriskHost").Value,
+                int.Parse(ArkeCallFlowService<ICallInfo>.Configuration.GetSection("appSettings:AriPort").Value),
+                ArkeCallFlowService<ICallInfo>.Configuration.GetSection("appSettings:AsteriskUser").Value,
+                ArkeCallFlowService<ICallInfo>.Configuration.GetSection("appSettings:AsteriskPassword").Value
                 );
             _logger.Information($"Registering endpoint {endpoint.AriEndPoint}:{endpoint.Host}:{endpoint.Port} with AriClient");
             _ariClient = new AriClient(endpoint,
@@ -157,8 +168,6 @@ namespace Arke.ServiceHost
             _logger.Information("Registering Dependencies");
             container.RegisterSingleton<ILogger>(Log.Logger);
             container.Register<IServiceClientBuilder, ServiceClientBuilder>();
-            container.Register<ICallFlowService, ArkeCallFlowService>(ObjectLifecycle.Singleton);
-            container.Register<ICall, ArkeCall>(ObjectLifecycle.Transient);
             _logger.Information("Dependencies registered.");
         }
         

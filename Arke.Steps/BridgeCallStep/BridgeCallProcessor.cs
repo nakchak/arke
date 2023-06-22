@@ -13,7 +13,7 @@ namespace Arke.Steps.BridgeCallStep
     {
         private const string NextStep = "NextStep";
         private IBridge _callBridge;
-        private ICall _call;
+        private ICall<ICallInfo> _call;
 
         public string Name => "BridgeCall";
 
@@ -22,14 +22,14 @@ namespace Arke.Steps.BridgeCallStep
             return _callBridge?.Id;
         }
 
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             _call = call;
-            if (!string.IsNullOrEmpty(call.CallState.GetBridgeId()))
+            if (!string.IsNullOrEmpty(call.CallState.Bridge.Id))
                 await call.StopHoldingBridgeAsync().ConfigureAwait(false);
             _callBridge = await call.CreateBridgeAsync(BridgeType.NoDTMF).ConfigureAwait(false);
             call.CallState.CalledPartyAcceptTime = DateTimeOffset.Now;
-            call.CallState.SetBridge(_callBridge);
+            call.CallState.Bridge = _callBridge;
             call.InputProcessor.ChangeInputSettings(null);
 
             if (!await AreBothLinesStillConnected())
@@ -37,12 +37,12 @@ namespace Arke.Steps.BridgeCallStep
                 await call.FireStateChange(Trigger.FailedCallFlow);
                 return;
             }
-            await call.AddLineToBridgeAsync(call.CallState.GetIncomingLineId(), _callBridge.Id).ConfigureAwait(false);
+            await call.AddLineToBridgeAsync(call.CallState.IncomingSipChannel.Id as string, _callBridge.Id).ConfigureAwait(false);
             //await call.SipBridgingApi.MuteLineAsync(call.CallState.GetIncomingLineId());
-            await call.AddLineToBridgeAsync(call.CallState.GetOutgoingLineId(), _callBridge.Id).ConfigureAwait(false);
+            await call.AddLineToBridgeAsync(call.CallState.OutgoingSipChannel.Id as string, _callBridge.Id).ConfigureAwait(false);
             //await call.SipBridgingApi.MuteLineAsync(call.CallState.GetOutgoingLineId());
 
-            call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(NextStep));
+            call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(NextStep));
             await call.FireStateChange(Trigger.NextCallFlowStep);
         }
 
@@ -55,7 +55,7 @@ namespace Arke.Steps.BridgeCallStep
         {
             try
             {
-                var lineState = await _call.SipLineApi.GetLineStateAsync(_call.CallState.GetIncomingLineId()).ConfigureAwait(false);
+                var lineState = await _call.SipLineApi.GetLineStateAsync(_call.CallState.IncomingSipChannel.Id as string).ConfigureAwait(false);
                 return lineState.ToLower() == "up";
             }
             catch (Exception)
@@ -68,7 +68,7 @@ namespace Arke.Steps.BridgeCallStep
         {
             try
             {
-                var lineState = await _call.SipLineApi.GetLineStateAsync(_call.CallState.GetOutgoingLineId()).ConfigureAwait(false);
+                var lineState = await _call.SipLineApi.GetLineStateAsync(_call.CallState.OutgoingSipChannel.Id as string).ConfigureAwait(false);
                 return lineState.ToLower() == "up";
             }
             catch (Exception)

@@ -16,7 +16,7 @@ namespace Arke.Steps.HoldStep
 {
     public class HoldStepProcessor : IStepProcessor
     {
-        private ICall _call;
+        private ICall<ICallInfo> _call;
         private string _currentPlaybackId;
         private HoldStepSettings _settings;
         public Dictionary<string, string> LogData = new Dictionary<string, string>();
@@ -29,7 +29,7 @@ namespace Arke.Steps.HoldStep
             return _settings;
         }
 
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             _call = call;
             _call.OnWorkflowStep += OnWorkflowStep;
@@ -38,10 +38,10 @@ namespace Arke.Steps.HoldStep
             _timeoutStep = step.GetStepFromConnector("TimeoutStep");
             
             _holdingBridge = await call.CreateBridgeAsync(BridgeType.Holding);
-            _call.CallState.SetBridge(_holdingBridge);
+            _call.CallState.Bridge = _holdingBridge;
             try
             {
-                await _call.SipBridgingApi.AddLineToBridgeAsync(_call.CallState.GetIncomingLineId(), _call.CallState.GetBridgeId());
+                await _call.SipBridgingApi.AddLineToBridgeAsync(_call.CallState.IncomingSipChannel.Id as string, _call.CallState.Bridge.Id);
             }
             catch (Exception e)
             {
@@ -52,12 +52,12 @@ namespace Arke.Steps.HoldStep
             }
             
             if (_settings.HoldMusic)
-                await _call.SipBridgingApi.PlayMusicOnHoldToBridgeAsync(_call.CallState.GetBridgeId());
+                await _call.SipBridgingApi.PlayMusicOnHoldToBridgeAsync(_call.CallState.Bridge.Id);
             else
             {
                 _call.CallState.HoldPrompt = _settings.WaitPrompt;
                 _call.SipApiClient.OnPromptPlaybackFinishedAsyncEvent += AriClient_OnPlaybackFinishedAsyncEvent;
-                _currentPlaybackId = await _call.SipBridgingApi.PlayPromptToBridgeAsync(_call.CallState.GetBridgeId(), _settings.WaitPrompt, call.CallState.LanguageCode);
+                _currentPlaybackId = await _call.SipBridgingApi.PlayPromptToBridgeAsync(_call.CallState.Bridge.Id, _settings.WaitPrompt, call.CallState.LanguageCode);
             }
             call.SipApiClient.OnLineHangupAsyncEvent += SipApiClientOnOnLineHangupEvent;
 
@@ -95,13 +95,13 @@ namespace Arke.Steps.HoldStep
             _call.SipApiClient.OnPromptPlaybackFinishedAsyncEvent -= AriClient_OnPlaybackFinishedAsyncEvent;
             _call.OnWorkflowStep -= OnWorkflowStep;
             _call.SipApiClient.OnLineHangupAsyncEvent -= SipApiClientOnOnLineHangupEvent;
-            _call.AddStepToProcessQueue(_timeoutStep);
+            _call.AddStepToIncomingProcessQueue(_timeoutStep);
             _call.FireStateChange(Trigger.NextCallFlowStep);
         }
 
         private async Task SipApiClientOnOnLineHangupEvent(ISipApiClient sender, LineHangupEvent e)
         {
-            if (e.LineId != _call.CallState.GetOutgoingLineId()) return;
+            if (e.LineId != _call.CallState.OutgoingSipChannel.Id as string) return;
             if (!_call.CallState.TalkTimeStart.HasValue)
             {
                 _call.CallState.CallCanBeAbandoned = true;
@@ -116,9 +116,9 @@ namespace Arke.Steps.HoldStep
             }
         }
 
-        private void OnWorkflowStep(ICall call, OnWorkflowStepEvent onWorkflowStepEvent)
+        private void OnWorkflowStep(ICall<ICallInfo> call, OnWorkflowStepEvent onWorkflowStepEvent)
         {
-            if (onWorkflowStepEvent.LineId != _call.CallState.GetOutgoingLineId())
+            if (onWorkflowStepEvent.LineId != _call.CallState.OutgoingSipChannel.Id as string)
                 return;
 
             if (_settings?.Triggers == null)
@@ -150,7 +150,7 @@ namespace Arke.Steps.HoldStep
 
         private void TriggerWorkflowStepEvent(OnWorkflowStepEvent onWorkflowStepEvent)
         {
-            _call.CallState.AddStepToIncomingQueue(
+            _call.AddStepToIncomingProcessQueue(
                 int.Parse(_settings.Triggers[onWorkflowStepEvent.StepId.ToString()]));
             _call.FireStateChange(Trigger.NextCallFlowStep);
             _call.OnWorkflowStep -= OnWorkflowStep;

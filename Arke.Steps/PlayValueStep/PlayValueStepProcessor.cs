@@ -12,7 +12,7 @@ namespace Arke.Steps.PlayValueStep
     {
         private const string next_step = "NextStep";
         public string Name => "PlayValueStep";
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             if (!(step.NodeData.Properties is PlayValueStepSettings stepSettings))
                 throw new ArgumentException("PlayValueStepProcessor called with invalid Step settings");
@@ -30,7 +30,7 @@ namespace Arke.Steps.PlayValueStep
             }
         }
 
-        private static async Task PlayNumberValue(Step step, ICall call, PlayValueStepSettings stepSettings)
+        private static async Task PlayNumberValue(Step step, ICall<ICallInfo> call, PlayValueStepSettings stepSettings)
         {
             var promptSettings = new PlayerPromptSettings()
             {
@@ -48,16 +48,16 @@ namespace Arke.Steps.PlayValueStep
 
             await call.PromptPlayer.PlayNumberToLineAsync(valueToPlay.ToString(),
                 stepSettings.Direction == Direction.Incoming
-                    ? call.CallState.GetIncomingLineId()
-                    : call.CallState.GetOutgoingLineId());
+                    ? call.CallState.IncomingSipChannel.Id as string
+                    : call.CallState.OutgoingSipChannel.Id as string);
 
             if (stepSettings.Direction != Direction.Outgoing)
-                call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(next_step));
+                call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(next_step));
             else
-                call.CallState.AddStepToOutgoingQueue(step.GetStepFromConnector(next_step));
+                call.AddStepToOutgoingProcessQueue(step.GetStepFromConnector(next_step));
         }
 
-        private static Task PlayMoneyValue(Step step, ICall call, PlayValueStepSettings stepSettings)
+        private static Task PlayMoneyValue(Step step, ICall<ICallInfo> call, PlayValueStepSettings stepSettings)
         {
             var numbersToPromptsConverter = new MoneyValueToPrompts(call.Logger);
             var valueToPlay = (decimal?) DynamicState.GetProperty(call.CallState, stepSettings.Value);
@@ -77,9 +77,9 @@ namespace Arke.Steps.PlayValueStep
 
             call.PromptPlayer.DoStepAsync(promptSettings);
             if (stepSettings.Direction != Direction.Outgoing)
-                call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(next_step));
+                call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(next_step));
             else
-                call.CallState.AddStepToOutgoingQueue(step.GetStepFromConnector(next_step));
+                call.AddStepToOutgoingProcessQueue(step.GetStepFromConnector(next_step));
             return Task.CompletedTask;
         }
     }

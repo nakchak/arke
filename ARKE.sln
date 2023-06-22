@@ -24,6 +24,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arke.ManagementApi", "Arke.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Arke.Tests", "Arke.Tests\Arke.Tests.csproj", "{D0E571C0-E4AE-46A1-A9EE-7D61E50D7CB2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Arke.SampleProject", "sample\Arke.SampleProject\Arke.SampleProject.csproj", "{95C1A849-0CB9-4130-B842-971D84AE8057}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		ARTEMIS|Any CPU = ARTEMIS|Any CPU
@@ -164,6 +166,22 @@ Global
 		{D0E571C0-E4AE-46A1-A9EE-7D61E50D7CB2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0E571C0-E4AE-46A1-A9EE-7D61E50D7CB2}.Release|x86.ActiveCfg = Release|Any CPU
 		{D0E571C0-E4AE-46A1-A9EE-7D61E50D7CB2}.Release|x86.Build.0 = Release|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.ARTEMIS|Any CPU.ActiveCfg = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.ARTEMIS|Any CPU.Build.0 = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.ARTEMIS|x86.ActiveCfg = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.ARTEMIS|x86.Build.0 = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Debug|x86.Build.0 = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.KeefeEngine|Any CPU.ActiveCfg = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.KeefeEngine|Any CPU.Build.0 = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.KeefeEngine|x86.ActiveCfg = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.KeefeEngine|x86.Build.0 = Debug|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Release|x86.ActiveCfg = Release|Any CPU
+		{95C1A849-0CB9-4130-B842-971D84AE8057}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -10,7 +10,7 @@ namespace Arke.Steps.InputStep
     public class GetInputProcessor : IStepProcessor
     {
         public string Name => "GetInput";
-        public Task DoStepAsync(Step step, ICall call)
+        public Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             call.Logger.Information("GetInputStep {@Call}", call.CallState);
             call.CallState.InputRetryCount++;

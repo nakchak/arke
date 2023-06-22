@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Arke.ServiceHost": {
+      "commandName": "Project"
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    }
+  }
+}

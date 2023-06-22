@@ -11,10 +11,10 @@ namespace Arke.Steps.CallLoopStep
     public class CallLoopProcessor : IStepProcessor
     {
         public string Name => "CallLoop";
-        private ICall _call;
+        private ICall<ICallInfo> _call;
         private Step _step;
         
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             var callTimer = new Timer(1000d);
             callTimer.Elapsed += CallTimer_Elapsed;
@@ -26,12 +26,12 @@ namespace Arke.Steps.CallLoopStep
 
         private async Task SipApiClient_OnLineHangupEvent(SipEngine.Api.ISipApiClient sender, SipEngine.Events.LineHangupEvent e)
         {
-            if (e.LineId == _call.CallState.GetIncomingLineId()
-                || e.LineId == _call.CallState.GetOutgoingLineId())
+            if (e.LineId == _call.CallState.IncomingSipChannel.Id as string
+                || e.LineId == _call.CallState.OutgoingSipChannel.Id as string)
             {
                 _call.SipApiClient.OnLineHangupAsyncEvent -= SipApiClient_OnLineHangupEvent;
-                _call.CallState.AddStepToIncomingQueue(_step.GetStepFromConnector("NextIncomingStep"));
-                _call.CallState.AddStepToOutgoingQueue(_step.GetStepFromConnector("NextOutgoingStep"));
+                _call.AddStepToIncomingProcessQueue(_step.GetStepFromConnector("NextIncomingStep"));
+                _call.AddStepToOutgoingProcessQueue(_step.GetStepFromConnector("NextOutgoingStep"));
             }
         }
 

@@ -15,11 +15,11 @@ namespace Arke.Steps.OutboundCallStep
         private const string NextStep = "NextStep";
         private const string FailedStep = "Error";
         private const string NoAnswer = "NoAnswer";
-        private ICall _call;
+        private ICall<ICallInfo> _call;
         private Step _step;
         public string Name => "CallOutbound";
 
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             _step = step;
             _call = call;
@@ -31,13 +31,13 @@ namespace Arke.Steps.OutboundCallStep
         {
             var next = _step.GetStepFromConnector(NextStep);
             _call.Logger.Information("Outbound connected, go to next step {stepId} {@Call}", next, _call.CallState);
-            _call.CallState.AddStepToOutgoingQueue(next);
+            _call.AddStepToOutgoingProcessQueue(next);
             _call.FireStateChange(Trigger.NextCallFlowStep);
         }
 
         public void GoToFailStep()
         {
-            _call.CallState.AddStepToOutgoingQueue(_step.GetStepFromConnector(FailedStep));
+            _call.AddStepToOutgoingProcessQueue(_step.GetStepFromConnector(FailedStep));
             _call.FireStateChange(Trigger.NextCallFlowStep);
         }
 
@@ -57,7 +57,7 @@ namespace Arke.Steps.OutboundCallStep
                     else
                     {
                         _call.Logger.Information("No Answer or busy. {@Call}", _call.CallState);
-                        _call.CallState.AddStepToOutgoingQueue(_step.GetStepFromConnector(NoAnswer));
+                        _call.AddStepToOutgoingProcessQueue(_step.GetStepFromConnector(NoAnswer));
                         await _call.FireStateChange(Trigger.NextCallFlowStep);
                         return;
                     }
@@ -137,9 +137,9 @@ namespace Arke.Steps.OutboundCallStep
             var outgoingCall = await _call.SipLineApi.CreateOutboundCallAsync(dialString, callerId, outboundEndpoint)
                 .ConfigureAwait(false);
             await Task.Delay(500);
-            _call.CallState.CreateOutgoingLine(outgoingCall);
+            await _call.CreateOutgoingLine(outgoingCall);
             await Task.Delay(500);
-            var outgoingLineId = _call.CallState.GetOutgoingLineId();
+            var outgoingLineId = _call.CallState.OutgoingSipChannel.Id as string;
 
             return outgoingLineId;
         }

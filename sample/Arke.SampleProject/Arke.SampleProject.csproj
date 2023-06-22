@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SimpleInjector.Packaging" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Arke.IVR\Arke.IVR.csproj" />
+    <ProjectReference Include="..\..\Arke.SipEngine\Arke.SipEngine.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(ProjectDir)$(OutDir)Arke.SampleProject.dll" DestinationFolder="$(SolutionDir)\Arke.ServiceHost\bin\$(ConfigurationName)\net6.0\Plugins\" />
+  </Target>
+</Project>

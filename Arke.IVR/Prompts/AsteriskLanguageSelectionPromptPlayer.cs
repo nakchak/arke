@@ -13,7 +13,7 @@ namespace Arke.IVR.Prompts
     {
         private const string LanguageCode = "en";
 
-        private readonly ICall _asteriskCall;
+        private readonly ICall<ICallInfo> _asteriskCall;
         private readonly Queue<IPrompt> _promptQueue;
         private ILanguageStepProcessor _stepProcessor;
         private readonly ISipPromptApi _sipPromptApi;
@@ -21,7 +21,7 @@ namespace Arke.IVR.Prompts
 
         private string _currentPlaybackId;
 
-        public AsteriskLanguageSelectionPromptPlayer(ICall asteriskCall, ISipPromptApi sipPromptApi, ISipApiClient sipApiClient)
+        public AsteriskLanguageSelectionPromptPlayer(ICall<ICallInfo> asteriskCall, ISipPromptApi sipPromptApi, ISipApiClient sipApiClient)
         {
             _asteriskCall = asteriskCall;
             _promptQueue = new Queue<IPrompt>();
@@ -69,7 +69,7 @@ namespace Arke.IVR.Prompts
             try
             {
                 _currentPlaybackId = await _sipPromptApi.PlayPromptToLineAsync(
-                    _asteriskCall.CallState.GetIncomingLineId(), promptFile, LanguageCode)
+                    _asteriskCall.CallState.IncomingSipChannel.Id as string, promptFile, LanguageCode)
                     .ConfigureAwait(false);
                 _asteriskCall.Logger.Debug($"Prompt ID: {_currentPlaybackId}", _asteriskCall.LogData);
             }

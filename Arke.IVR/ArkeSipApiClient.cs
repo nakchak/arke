@@ -7,6 +7,7 @@ using Arke.IVR.Bridging;
 using Arke.SipEngine.Api;
 using Arke.SipEngine.Api.Models;
 using Arke.SipEngine.Bridging;
+using Arke.SipEngine.CallObjects;
 using Arke.SipEngine.CallObjects.RecordingFiles;
 using Arke.SipEngine.Events;
 using AsterNET.ARI;
@@ -28,7 +29,7 @@ namespace Arke.IVR
         {
             _logger = logger;
             _ariClient = ariClient;
-            _appName = ArkeCallFlowService.Configuration.GetSection("appSettings:AsteriskAppName").Value;
+            _appName = ArkeCallFlowService<ICallInfo>.Configuration.GetSection("appSettings:AsteriskAppName").Value;
         }
 
         public event DtmfReceivedEventHandler OnDtmfReceivedEvent;

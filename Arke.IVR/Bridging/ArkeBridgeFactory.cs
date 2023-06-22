@@ -21,25 +21,26 @@ namespace Arke.IVR.Bridging
 
         public async Task StopHoldingBridge(ICallInfo callInfo)
         {
-            await _ariClient.RemoveLineFromBridgeAsync(callInfo.GetIncomingLineId(), callInfo.GetBridgeId());
-            await _ariClient.DestroyBridgeAsync(callInfo.GetBridgeId());
+            await _ariClient.RemoveLineFromBridgeAsync(callInfo.IncomingSipChannel.Id as string, callInfo.Bridge.Id);
+            await _ariClient.DestroyBridgeAsync(callInfo.Bridge.Id);
         }
 
         public async Task<IBridge> CreateBridge(BridgeType bridgeType)
         {
-            switch (bridgeType)
+            return bridgeType switch
             {
-                case BridgeType.NoMedia:
-                    return await _ariClient.CreateBridgeAsync((new MixingBridgeType()).Type, new BridgeNameGenerator().GetRandomBridgeName());
-                case BridgeType.Holding:
-                    return await _ariClient.CreateBridgeAsync((new HoldingBridgeType()).Type, new BridgeNameGenerator().GetRandomBridgeName());
-                case BridgeType.NoDTMF:
-                    return await _ariClient.CreateBridgeAsync((new ProxyMediaBridgeType()).Type, new BridgeNameGenerator().GetRandomBridgeName());
-                case BridgeType.WithDTMF:
-                    return await _ariClient.CreateBridgeAsync($"{(new DtmfBridgeType()).Type},{(new MixingBridgeType()).Type}", new BridgeNameGenerator().GetRandomBridgeName());
-                default:
-                    return await _ariClient.CreateBridgeAsync((new DtmfBridgeType()).Type, new BridgeNameGenerator().GetRandomBridgeName());
-            }
+                BridgeType.NoMedia => await _ariClient.CreateBridgeAsync((new MixingBridgeType()).Type,
+                    new BridgeNameGenerator().GetRandomBridgeName()),
+                BridgeType.Holding => await _ariClient.CreateBridgeAsync((new HoldingBridgeType()).Type,
+                    new BridgeNameGenerator().GetRandomBridgeName()),
+                BridgeType.NoDTMF => await _ariClient.CreateBridgeAsync((new ProxyMediaBridgeType()).Type,
+                    new BridgeNameGenerator().GetRandomBridgeName()),
+                BridgeType.WithDTMF => await _ariClient.CreateBridgeAsync(
+                    $"{(new DtmfBridgeType()).Type},{(new MixingBridgeType()).Type}",
+                    new BridgeNameGenerator().GetRandomBridgeName()),
+                _ => await _ariClient.CreateBridgeAsync((new DtmfBridgeType()).Type,
+                    new BridgeNameGenerator().GetRandomBridgeName())
+            };
         }
     }
 }

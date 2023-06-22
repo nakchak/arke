@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Arke.DSL.Step;
+using Arke.IntegrationApi.CallObjects;
 using Arke.SipEngine.Api;
 using Arke.SipEngine.BridgeName;
 using Arke.SipEngine.Bridging;
@@ -19,10 +20,10 @@ namespace Arke.Steps.TransferStep
         private const string NextStep = "NextStep";
         private ISipChannel transferChannel;
         private string outboundLineId;
-        private ICall _call;
+        private ICall<ICallInfo> _call;
         private Step _step;
 
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             _call = call;
             _step = step;
@@ -31,7 +32,7 @@ namespace Arke.Steps.TransferStep
             var transferLine =
                 await call.SipLineApi.CreateOutboundCallAsync(transferSettings.DialString, transferSettings.Endpoint);
 
-            transferChannel = call.CallState.CreateTransferLine(transferLine);
+            transferChannel = await call.CreateTransferLine(transferLine);
             await Task.Delay(500);
             call.SipApiClient.OnLineHangupAsyncEvent += SipApiClientOnOnLineHangupEvent;
 
@@ -40,9 +41,9 @@ namespace Arke.Steps.TransferStep
                 case Direction.Outgoing:
                 {
                     var transferBridge = await call.CreateBridgeAsync(BridgeType.WithDTMF);
-                    outboundLineId = call.CallState.GetOutgoingLineId();
+                    outboundLineId = call.CallState.OutgoingSipChannel.Id as string;
                     await Task.Delay(500);
-                    await call.AddLineToBridgeAsync(call.CallState.GetOutgoingLineId(), transferBridge.Id);
+                    await call.AddLineToBridgeAsync(call.CallState.OutgoingSipChannel.Id as string, transferBridge.Id);
                     await Task.Delay(500);
                     await call.AddLineToBridgeAsync(transferChannel.Id.ToString(), transferBridge.Id);
                     break;
@@ -50,7 +51,7 @@ namespace Arke.Steps.TransferStep
                 case Direction.Incoming:
                 {
                     var transferBridge = await call.CreateBridgeAsync(BridgeType.WithDTMF);
-                    await call.AddLineToBridgeAsync(call.CallState.GetIncomingLineId(), transferBridge.Id);
+                    await call.AddLineToBridgeAsync(call.CallState.IncomingSipChannel.Id as string, transferBridge.Id);
                     await call.AddLineToBridgeAsync(transferChannel.Id.ToString(), transferBridge.Id);
                     break;
                 }
@@ -72,12 +73,12 @@ namespace Arke.Steps.TransferStep
             await _call.FireStateChange(Trigger.NextCallFlowStep);
         }
 
-        public void GoToNextStep(ICall call, Step step)
+        public void GoToNextStep(ICall<ICallInfo> call, Step step)
         {
             if (step.NodeData.Properties.Direction != Direction.Outgoing)
-                call.CallState.AddStepToIncomingQueue(step.GetStepFromConnector(NextStep));
+                call.AddStepToIncomingProcessQueue(step.GetStepFromConnector(NextStep));
             else
-                call.CallState.AddStepToOutgoingQueue(step.GetStepFromConnector(NextStep));
+                call.AddStepToOutgoingProcessQueue(step.GetStepFromConnector(NextStep));
         }
     }
 }

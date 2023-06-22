@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Arke.IntegrationApi.CallObjects;
 using Arke.IVR.CallObjects;
 using Arke.SipEngine;
 using Arke.SipEngine.Api;
@@ -14,21 +15,21 @@ using Serilog;
 
 namespace Arke.IVR
 {
-    public class ArkeCallFlowService : ICallFlowService
+    public class ArkeCallFlowService<T> : ICallFlowService<T> where T : ICallInfo
     {
         private readonly IAriClient _ariClient;
         private readonly ILogger _logger;
         private CancellationToken _cancellationToken;
         private readonly ISipApiClient _sipApi;
 
-        public Dictionary<string, ICall> ConnectedLines { get; set; }
+        public Dictionary<string, ICall<T>> ConnectedLines { get; }
         public static IConfiguration Configuration { get; set; }
 
         public ArkeCallFlowService(ILogger logger, IAriClient ariClient, ISipApiClient sipApi)
         {
             _logger = logger;
             _logger.Information("ArkeCallFlowService Created");
-            ConnectedLines = new Dictionary<string, ICall>();
+            ConnectedLines = new Dictionary<string, ICall<T>>();
             _ariClient = ariClient;
             _sipApi = sipApi;
         }
@@ -111,7 +112,7 @@ namespace Arke.IVR
         }
 
         
-        private async void AriClientOnStasisStartEvent(IAriClient sender, StasisStartEvent e)
+        public virtual async void AriClientOnStasisStartEvent(IAriClient sender, StasisStartEvent e)
         {
             _logger.Debug($"Line Connecting: {e.Channel.Name}");
             
@@ -124,7 +125,7 @@ namespace Arke.IVR
                 CallerIdNumber = e.Channel.Caller.Name
             });
             var line = ArkeCallFactory.CreateArkeCall(e.Channel);
-            ConnectedLines.Add(e.Channel.Id, line);
+            ConnectedLines.Add(e.Channel.Id, line as ICall<T>);
             _logger.Information("Starting Call Script", new
             {
                 ChannelId = e.Channel.Id
@@ -137,7 +138,7 @@ namespace Arke.IVR
             _logger.Information("Call Setup Script Complete", new { ChannelId = e.Channel.Id });
         }
 
-        private async void AriClientOnStasisEndEvent(IAriClient sender, StasisEndEvent stasisEndEvent)
+        public virtual async void AriClientOnStasisEndEvent(IAriClient sender, StasisEndEvent stasisEndEvent)
         {
             _logger.Information("Channel {channelId} hungup", new { channelId = stasisEndEvent.Channel.Id});
             if (!ConnectedLines.ContainsKey(stasisEndEvent.Channel.Id))
@@ -159,7 +160,7 @@ namespace Arke.IVR
             ConnectedLines.Remove(stasisEndEvent.Channel.Id);
         }
 
-        private async Task EndAllCallsAsync()
+        protected virtual async Task EndAllCallsAsync()
         {
             foreach (var line in ConnectedLines.Where(c => c.Value.CallState.CallCanBeAbandoned))
             {

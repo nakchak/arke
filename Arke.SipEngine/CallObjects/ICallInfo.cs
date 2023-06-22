@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Arke.IntegrationApi.CallObjects;
 using Arke.SipEngine.Bridging;
 using Arke.SipEngine.Device;
 
@@ -30,8 +31,8 @@ namespace Arke.SipEngine.CallObjects
         DateTimeOffset? CalledPartyAcceptTime { get; set; }
         DateTimeOffset? TimeDeviceConnected { get; set; }
         string OutboundUri { get; set; }
+        IBridge Bridge { get; set; }
         string HoldPrompt { get; set; }
-        IBridge Bridge { get; }
         string OutboundCallerId { get; set; }
         bool CallCleanupRun { get; set; }
         DateTimeOffset OutgoingRecordingStartTime { get; set; }
@@ -44,19 +45,13 @@ namespace Arke.SipEngine.CallObjects
         long ChannelOutgoingRecordingEndTimeTicks { get; set; }
         long ChannelBridgeRecordingStartTimeTicks { get; set; }
         long ChannelBridgeRecordingEndTimeTicks { get; set; }
+        Queue<int> IncomingLineQueue { get; set; }
+        Queue<int> OutgoingLineQueue { get; set; }
 
-        void AddStepToIncomingQueue(int stepId);
-        void AddStepToOutgoingQueue(int stepId);
-        void CreateOutgoingLine(object sipLine);
-        string GetBridgeId();
-        string GetIncomingLineId();
-        int GetNextIncomingStep();
-        int GetNextOutgoingStep();
-        string GetOutgoingLineId();
-        string GetPortId();
-        int GetStepsOnIncomingQueue();
-        int GetStepsOnOutgoingQueue();
-        void SetBridge(IBridge bridge);
-        ISipChannel CreateTransferLine(object sipLine);
+        ISipChannel IncomingSipChannel { get; set; }
+        ISipChannel MonitoringSipChannel { get; set; }
+        ISipChannel OutgoingSipChannel { get; set; }
+        ISipChannel TransferSipChannel { get; set; }
+        int StepAttempts { get; set; }
     }
 }

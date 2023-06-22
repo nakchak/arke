@@ -13,7 +13,7 @@ namespace Arke.Steps.PlayPromptStep
         public string Name => "PlayPrompt";
         private Direction _direction;
 
-        public async Task DoStepAsync(Step step, ICall call)
+        public async Task DoStepAsync(Step step, ICall<ICallInfo> call)
         {
             var stepSettings = (PlayPromptSettings) step.NodeData.Properties;
             call.StepSettings = stepSettings;
@@ -25,22 +25,22 @@ namespace Arke.Steps.PlayPromptStep
             await call.FireStateChange(Trigger.PlayInterruptiblePrompt);
         }
 
-        public void AddStepToProperQueue(int step, ICall call)
+        public void AddStepToProperQueue(int step, ICall<ICallInfo> call)
         {
             switch (_direction)
             {
                 case Direction.Both:
-                    call.CallState.AddStepToIncomingQueue(step);
+                    call.AddStepToIncomingProcessQueue(step);
                     //call.CallState.AddStepToOutgoingQueue(step); // might not be needed, could be causing our double queue issue.
                     break;
                 case Direction.Incoming:
-                    call.CallState.AddStepToIncomingQueue(step);
+                    call.AddStepToIncomingProcessQueue(step);
                     break;
                 case Direction.Outgoing:
-                    call.CallState.AddStepToOutgoingQueue(step);
+                    call.AddStepToOutgoingProcessQueue(step);
                     break;
                 default:
-                    call.CallState.AddStepToIncomingQueue(step);
+                    call.AddStepToIncomingProcessQueue(step);
                     break;
             }
         }

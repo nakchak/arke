@@ -7,6 +7,7 @@ namespace Arke.ManagementApi.Controllers
 {
     [Produces("application/json")]
     [Route("api/callflows")]
+    [ApiController]
     public class CallFlowsController : ControllerBase
     {
         public CallFlowsController() { }
