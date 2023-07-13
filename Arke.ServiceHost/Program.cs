@@ -14,7 +14,7 @@ using Arke.SipEngine.Api;
 using Arke.SipEngine.CallObjects;
 using Arke.SipEngine.Interfaces;
 using Arke.SipEngine.Services;
-using AsterNET.ARI;
+using Arke.ARI;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -150,7 +150,7 @@ namespace Arke.ServiceHost
 
             var container = ObjectContainer.GetInstance();
             container.RegisterSingleton<IAriClient>(() => _ariClient);
-            _sipApi = new ArkeSipApiClient(_ariClient, _logger);
+            _sipApi = new IVR.ArkeSipApiClient(_ariClient, _logger);
             container.RegisterSingleton(_sipApi);
             _logger.Information("Registering API Layer");
             container.RegisterSingleton<ISipApiClient>(_sipApi);

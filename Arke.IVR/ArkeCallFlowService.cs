@@ -8,8 +8,8 @@ using Arke.IVR.CallObjects;
 using Arke.SipEngine;
 using Arke.SipEngine.Api;
 using Arke.SipEngine.CallObjects;
-using AsterNET.ARI;
-using AsterNET.ARI.Models;
+using Arke.ARI;
+using Arke.ARI.Models;
 using Microsoft.Extensions.Configuration;
 using Serilog;
 

@@ -1,5 +1,5 @@
 ﻿using Arke.SipEngine.Bridging;
-using AsterNET.ARI.Models;
+using Arke.ARI.Models;
 
 namespace Arke.IVR.Bridging
 {

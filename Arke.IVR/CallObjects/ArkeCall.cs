@@ -19,7 +19,7 @@ using Arke.SipEngine.Events;
 using Arke.SipEngine.FSM;
 using Arke.SipEngine.Processors;
 using Arke.SipEngine.Prompts;
-using AsterNET.ARI.Models;
+using Arke.ARI.Models;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;

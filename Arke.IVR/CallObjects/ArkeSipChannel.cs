@@ -2,7 +2,7 @@
 using Arke.IntegrationApi.CallObjects;
 using Arke.SipEngine.CallObjects;
 using Arke.SipEngine.FSM;
-using AsterNET.ARI.Models;
+using Arke.ARI.Models;
 
 namespace Arke.IVR.CallObjects
 {

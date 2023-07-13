@@ -1,7 +1,7 @@
 ﻿using System;
 using Arke.DependencyInjection;
 using Arke.SipEngine.CallObjects;
-using AsterNET.ARI.Models;
+using Arke.ARI.Models;
 
 namespace Arke.IVR.CallObjects
 {

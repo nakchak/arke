@@ -10,7 +10,7 @@ using Arke.SipEngine.Bridging;
 using Arke.SipEngine.CallObjects;
 using Arke.SipEngine.CallObjects.RecordingFiles;
 using Arke.SipEngine.Events;
-using AsterNET.ARI;
+using Arke.ARI;
 using Serilog;
 using RecordingFinishedEventHandler = Arke.SipEngine.Api.RecordingFinishedEventHandler;
 
@@ -301,7 +301,7 @@ namespace Arke.IVR
             _appName = appName;
         }
 
-        private void AriClient_OnStasisEndEvent(IAriClient sender, AsterNET.ARI.Models.StasisEndEvent e)
+        private void AriClient_OnStasisEndEvent(IAriClient sender, Arke.ARI.Models.StasisEndEvent e)
         {
             OnLineHangupAsyncEvent?.Invoke(this, new LineHangupEvent()
             {
@@ -309,7 +309,7 @@ namespace Arke.IVR
             });
         }
 
-        private void AriClient_OnPlaybackFinishedEvent(IAriClient sender, AsterNET.ARI.Models.PlaybackFinishedEvent e)
+        private void AriClient_OnPlaybackFinishedEvent(IAriClient sender, Arke.ARI.Models.PlaybackFinishedEvent e)
         {
             OnPromptPlaybackFinishedAsyncEvent?.Invoke(this, new PromptPlaybackFinishedEvent()
             {
@@ -317,7 +317,7 @@ namespace Arke.IVR
             });
         }
 
-        private void AriClient_OnChannelDtmfReceivedEvent(IAriClient sender, AsterNET.ARI.Models.ChannelDtmfReceivedEvent e)
+        private void AriClient_OnChannelDtmfReceivedEvent(IAriClient sender, Arke.ARI.Models.ChannelDtmfReceivedEvent e)
         {
             OnDtmfReceivedEvent?.Invoke(this, new DtmfReceivedEvent()
             {
