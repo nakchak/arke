@@ -15,21 +15,21 @@ using Serilog;
 
 namespace Arke.IVR
 {
-    public class ArkeCallFlowService<T> : ICallFlowService<T> where T : ICallInfo
+    public class ArkeCallFlowService<T> : ICallFlowService<ICallInfo>
     {
         private readonly IAriClient _ariClient;
         private readonly ILogger _logger;
         private CancellationToken _cancellationToken;
         private readonly ISipApiClient _sipApi;
 
-        public Dictionary<string, ICall<T>> ConnectedLines { get; }
+        public Dictionary<string, ICall<ICallInfo>> ConnectedLines { get; }
         public static IConfiguration Configuration { get; set; }
 
         public ArkeCallFlowService(ILogger logger, IAriClient ariClient, ISipApiClient sipApi)
         {
             _logger = logger;
             _logger.Information("ArkeCallFlowService Created");
-            ConnectedLines = new Dictionary<string, ICall<T>>();
+            ConnectedLines = new Dictionary<string, ICall<ICallInfo>>();
             _ariClient = ariClient;
             _sipApi = sipApi;
         }
@@ -125,7 +125,7 @@ namespace Arke.IVR
                 CallerIdNumber = e.Channel.Caller.Name
             });
             var line = ArkeCallFactory.CreateArkeCall(e.Channel);
-            ConnectedLines.Add(e.Channel.Id, line as ICall<T>);
+            ConnectedLines.Add(e.Channel.Id, line as ICall<ICallInfo>);
             _logger.Information("Starting Call Script", new
             {
                 ChannelId = e.Channel.Id

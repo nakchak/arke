@@ -48,7 +48,7 @@ namespace Arke.IVR.Prompts
 
         public async Task PlayNextPromptInQueue()
         {
-            if (_asteriskCall.GetCurrentState() == State.StoppingPlayback || _promptQueue.Count == 0)
+            if (_asteriskCall.GetCurrentState() == IStateMachineState.StoppingPlayback || _promptQueue.Count == 0)
                 return;
             _asteriskCall.Logger.Debug($"Playing next prompt in queue, queue size: {_promptQueue.Count}", _asteriskCall.LogData);
             try
@@ -60,7 +60,7 @@ namespace Arke.IVR.Prompts
             catch (Exception e)
             {
                 _asteriskCall.Logger.Error(e, "Error playing prompt in queue.");
-                await _asteriskCall.FireStateChange(Trigger.FinishCall);
+                await _asteriskCall.FireStateChange(IStateMachineTrigger.FinishCall);
             }
         }
 
@@ -77,14 +77,14 @@ namespace Arke.IVR.Prompts
             {
                 _asteriskCall.Logger.Error(ex, $"Error Playing Prompt: {ex.Message}");
                 CleanupEventHooks();
-                if (_asteriskCall.GetCurrentState() != State.HangUp)
-                    await _asteriskCall.FireStateChange(Trigger.FinishCall);
+                if (_asteriskCall.GetCurrentState() != IStateMachineState.HangUp)
+                    await _asteriskCall.FireStateChange(IStateMachineTrigger.FinishCall);
             }
         }
 
         public async Task HaltPromptPlayback()
         {
-            if (_asteriskCall.GetCurrentState() == State.PlayingPrompt)
+            if (_asteriskCall.GetCurrentState() == IStateMachineState.PlayingPrompt)
                 throw new InvalidOperationException("Cannot stop playback of this prompt.");
             _asteriskCall.Logger.Debug($"Stopping Prompt {_currentPlaybackId}", _asteriskCall.LogData);
             var stopPlaybackTask = _sipPromptApi.StopPromptAsync(_currentPlaybackId).ConfigureAwait(false);
@@ -122,12 +122,12 @@ namespace Arke.IVR.Prompts
         {
             if (e.PlaybackId != _currentPlaybackId)
                 return;
-            if (_asteriskCall.GetCurrentState() == State.StoppingPlayback)
+            if (_asteriskCall.GetCurrentState() == IStateMachineState.StoppingPlayback)
                 return;
             if (_promptQueue.Count == 0)
             {
-                if (_asteriskCall.GetCurrentState() != State.LanguageInput)
-                    await _asteriskCall.FireStateChange(Trigger.GetLanguageInput);
+                if (_asteriskCall.GetCurrentState() != IStateMachineState.LanguageInput)
+                    await _asteriskCall.FireStateChange(IStateMachineTrigger.GetLanguageInput);
                 _stepProcessor.StartTimeoutTimer();
             }
             else

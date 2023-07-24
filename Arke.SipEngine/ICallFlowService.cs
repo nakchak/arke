@@ -5,7 +5,7 @@ using Arke.SipEngine.CallObjects;
 
 namespace Arke.SipEngine
 {
-    public interface ICallFlowService<T>
+    public interface ICallFlowService<T> where T : ICallInfo
     {
         Dictionary<string, ICall<T>> ConnectedLines { get; }
         bool Start(CancellationToken cancellationToken);

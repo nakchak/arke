@@ -48,7 +48,7 @@ namespace Arke.DSL.Step
 
         public virtual NodeProperties ConvertFromJObject(JObject jObject)
         {
-            SetDirection(jObject.GetValue("Direction").Value<string>());
+            SetDirection(jObject.GetValue("Direction")?.Value<string>() ?? string.Empty);
             return this;
         }
 

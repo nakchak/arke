@@ -79,7 +79,7 @@ namespace Arke.SipEngine.BridgeName
         public static string GetDevFilePathForWordFiles()
         {
             //return "c:\\ArtemisConfig\\";
-            var path = Directory.GetCurrentDirectory();
+            var path = AppContext.BaseDirectory;
             const string textFilesFolder = "TextFilesForBridgeName";
             var file = Path.Combine(path, textFilesFolder);
             return file;
@@ -87,7 +87,7 @@ namespace Arke.SipEngine.BridgeName
 
         private static string GetFilePathForWordFiles()
         {
-            var path = Directory.GetCurrentDirectory();
+            var path =AppContext.BaseDirectory;
             const string textFilesFolder = "TextFilesForBridgeName";
             var file = Path.Combine(path, textFilesFolder);
             return file;

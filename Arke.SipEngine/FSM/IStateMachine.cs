@@ -1,12 +1,16 @@
+using System;
 using System.Threading.Tasks;
+using Arke.SipEngine.CallObjects;
+using Newtonsoft.Json.Linq;
 using Stateless;
 
 namespace Arke.SipEngine.FSM
 {
-    public interface IStateMachine
+    public interface IStateMachine<TState, TTrigger>
     {
-        StateMachine<State, Trigger> StateMachine { get; set; }
-        Task FireAsync(Trigger trigger);
-        void SetupFiniteStateMachine();
+        StateMachine<TState, TTrigger> StateMachine { get; set; }
+        Action<StateMachine<TState, TTrigger>, ICall<ICallInfo>, IPromptPlayer> Configure { get; set; }
+        Task FireAsync(TTrigger trigger);
+        void SetupFiniteStateMachine(ICall<ICallInfo> call, IPromptPlayer promptPlayer);
     }
 }

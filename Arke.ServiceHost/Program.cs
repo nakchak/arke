@@ -12,6 +12,7 @@ using Arke.IVR.CallObjects;
 using Arke.SipEngine;
 using Arke.SipEngine.Api;
 using Arke.SipEngine.CallObjects;
+using Arke.SipEngine.FSM;
 using Arke.SipEngine.Interfaces;
 using Arke.SipEngine.Services;
 using Arke.ARI;
@@ -115,14 +116,22 @@ namespace Arke.ServiceHost
 
         private static void LoadPlugins()
         {
-            _pluginDirectory = ArkeCallFlowService<ICallInfo>.GetConfigValue("appSettings:PluginDirectory");
-            if (!Directory.Exists(_pluginDirectory)) Directory.CreateDirectory(_pluginDirectory);
-            var assemblies =
-                from file in new DirectoryInfo(_pluginDirectory).GetFiles()
-                where string.Equals(file.Extension, ".dll", StringComparison.InvariantCultureIgnoreCase)
-                select Assembly.Load(AssemblyLoadContext.GetAssemblyName(file.FullName));
+            var si = ObjectContainer.GetInstance().GetSimpleInjectorContainer();
+            si.Options.AllowOverridingRegistrations = true;
+            _pluginDirectory = Path.Join(AppDomain.CurrentDomain.BaseDirectory, $"{ArkeCallFlowService<ICallInfo>.GetConfigValue("appSettings:PluginDirectory")}");
+            if (!Directory.Exists(_pluginDirectory)) { Directory.CreateDirectory(_pluginDirectory); }
+            var plugins = new DirectoryInfo(_pluginDirectory)
+                .GetFiles()
+                .Where(_ => _.Extension.Equals(".dll", StringComparison.InvariantCultureIgnoreCase))
+                .Select(_ => Assembly.LoadFrom(_.FullName));
+            si.RegisterPackages(plugins);
 
-            ObjectContainer.GetInstance().GetSimpleInjectorContainer().RegisterPackages(assemblies);
+            //var assemblies =
+            //    from file in new DirectoryInfo(_pluginDirectory).GetFiles()
+            //    where string.Equals(file.Extension, ".dll", StringComparison.InvariantCultureIgnoreCase)
+            //    select Assembly.Load(AssemblyLoadContext.GetAssemblyName(file.FullName));
+
+            //ObjectContainer.GetInstance().GetSimpleInjectorContainer().RegisterPackages(assemblies);
         }
 
         private static void InitializeConfigurationFileDependencies()
@@ -130,7 +139,7 @@ namespace Arke.ServiceHost
             _configuration = GetAppSettingsByHostName();
             ArkeCallFlowService<ICallInfo>.Configuration = _configuration;
         }
-        
+
         public static void SetupAriEndpoint()
         {
             _logger.Information("Creating Endpoint");
@@ -150,7 +159,7 @@ namespace Arke.ServiceHost
 
             var container = ObjectContainer.GetInstance();
             container.RegisterSingleton<IAriClient>(() => _ariClient);
-            _sipApi = new IVR.ArkeSipApiClient(_ariClient, _logger);
+            _sipApi = new ArkeSipApiClient(_ariClient, _logger);
             container.RegisterSingleton(_sipApi);
             _logger.Information("Registering API Layer");
             container.RegisterSingleton<ISipApiClient>(_sipApi);
@@ -168,9 +177,16 @@ namespace Arke.ServiceHost
             _logger.Information("Registering Dependencies");
             container.RegisterSingleton<ILogger>(Log.Logger);
             container.Register<IServiceClientBuilder, ServiceClientBuilder>();
+
+            container.GetSimpleInjectorContainer().RegisterInstance<IStateMachineState>(new State(string.Empty));
+            container.GetSimpleInjectorContainer().RegisterInstance<IStateMachineTrigger>(new Trigger(string.Empty));
+            //container.Register<IStateMachineTrigger, Trigger>();
+            container.Register<IStateMachineConfiguration, StateMachineConfiguration>();
+            container.Register<IStateMachine<IStateMachineState, IStateMachineTrigger>, CallStateMachine<State, Trigger>>(ObjectLifecycle.Transient);
+           // container.Register<ICall, ArkeCall>(ObjectLifecycle.Transient);
             _logger.Information("Dependencies registered.");
         }
-        
+
         public static IConfiguration GetAppSettingsByHostName()
         {
             var hostName = Dns.GetHostName();

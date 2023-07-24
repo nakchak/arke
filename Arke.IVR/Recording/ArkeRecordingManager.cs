@@ -70,7 +70,7 @@ namespace Arke.IVR.Recording
 
         public async Task AriClient_OnRecordingFinishedEvent(ISipApiClient sender, RecordingFinishedEventHandlerArgs args)
         {
-            await _call.FireStateChange(Trigger.NextCallFlowStep);
+            await _call.FireStateChange(IStateMachineTrigger.NextCallFlowStep);
         }
     }
 }

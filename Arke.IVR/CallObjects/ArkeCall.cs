@@ -23,38 +23,40 @@ using Arke.ARI.Models;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
+using System.Dynamic;
 
 namespace Arke.IVR.CallObjects
 {
-    public class ArkeCall<T> : ICall<T> where T : class, ICallInfo
+    public class ArkeCall<T> : ICall<ICallInfo> where T : class
     {
         private readonly ArkeBridgeFactory _arkeBridgeFactory;
         private readonly AsteriskPhoneInputHandler _asteriskPhoneInputHandler;
         private readonly Dictionary<string, string> _logFields;
         private readonly ArkePromptPlayer _promptPlayer;
-        private T _callState;
+        private ICallInfo _callState;
         private CancellationToken _cancellationToken;
         
         public ArkeCall(ISipApiClient sipApiClient, ISipLineApi sipLineApi, ISipBridgingApi sipBridgeApi,
-            ISipPromptApi sipPromptApi, ISipRecordingApi sipRecordingApi, ILogger logger)
+            ISipPromptApi sipPromptApi, ISipRecordingApi sipRecordingApi, ILogger logger, IStateMachineConfiguration stateMachineConfiguration)
         {
             Logger = logger;
             SipApiClient = sipApiClient;
             SipLineApi = sipLineApi;
-            SipBridgingApi= sipBridgeApi;
+            SipBridgingApi = sipBridgeApi;
             _logFields = new Dictionary<string, string>();
             _promptPlayer = new ArkePromptPlayer(this as ICall<ICallInfo>, sipPromptApi);
             _asteriskPhoneInputHandler = new AsteriskPhoneInputHandler(this as ICall<ICallInfo>, _promptPlayer);
             RecordingManager = new ArkeRecordingManager(sipRecordingApi, this as ICall<ICallInfo>);
             DslProcessor = new DslProcessor(this as ICall<ICallInfo>);
             _arkeBridgeFactory = new ArkeBridgeFactory(SipBridgingApi);
-            CallStateMachine = new CallStateMachine(this as ICall<ICallInfo>, _promptPlayer);
-            CallStateMachine.SetupFiniteStateMachine();
+            CallStateMachine = stateMachineConfiguration.StateMachine; //new CallStateMachine<State,Trigger>();
+            CallStateMachine.Configure = stateMachineConfiguration.Configuration;
+            CallStateMachine.SetupFiniteStateMachine(this as ICall<ICallInfo>, _promptPlayer);
             LanguageSelectionPromptPlayer = new AsteriskLanguageSelectionPromptPlayer(this as ICall<ICallInfo>, sipPromptApi, sipApiClient);
         }
-        
+
         public Guid CallId { get; set; }
-        public virtual T CallState
+        public virtual ICallInfo CallState
         {
             get => _callState;
             set
@@ -65,7 +67,7 @@ namespace Arke.IVR.CallObjects
             }
         }
 
-        public CallStateMachine CallStateMachine { get; set; }
+        public IStateMachine<IStateMachineState,IStateMachineTrigger> CallStateMachine { get; set; }
         public DslProcessor DslProcessor { get; set; }
         public IPhoneInputHandler InputProcessor => _asteriskPhoneInputHandler;
         public ILanguageSelectionPromptPlayer LanguageSelectionPromptPlayer { get; private set; }
@@ -111,18 +113,18 @@ namespace Arke.IVR.CallObjects
             Logger.Debug("Channel Answered");
             _callState.TimeOffHook = DateTimeOffset.Now;
             _logFields.Add("TimeDeviceOffHook", _callState.TimeOffHook.ToString("s"));
-            await CallStateMachine.FireAsync(Trigger.Answered);
+            await CallStateMachine.FireAsync(IStateMachineTrigger.Answered);
             Logger.Debug("New Call Answered");
         }
 
         private async Task AriClient_OnStasisEndEvent(ISipApiClient sipApiClient, LineHangupEvent e)
         {
-            if (_callState.IncomingSipChannel == null)
+            if (_callState.IncomingSipChannel?.Id == null)
                 return;
             if (e.LineId != _callState.IncomingSipChannel.Id as string)
                 return;
             Logger.Debug("OnStasisEndEvent");
-            await CallStateMachine.FireAsync(Trigger.FinishCall);
+            await CallStateMachine.FireAsync(IStateMachineTrigger.FinishCall);
             SipApiClient.OnDtmfReceivedEvent -= _asteriskPhoneInputHandler.AriClient_OnChannelDtmfReceivedEvent;
             SipApiClient.OnPromptPlaybackFinishedAsyncEvent -= _promptPlayer.AriClient_OnPlaybackFinishedEvent;
             
@@ -186,14 +188,14 @@ namespace Arke.IVR.CallObjects
             }
         }
 
-        public async Task FireStateChange(Trigger trigger)
+        public async Task FireStateChange(IStateMachineTrigger trigger)
         {
             await CallStateMachine.FireAsync(trigger);
         }
 
-        public State GetCurrentState()
+        public IStateMachineState GetCurrentState()
         {
-            return CallStateMachine.StateMachine.State;
+            return (IStateMachineState)CallStateMachine.StateMachine.State;
         }
 
         public async Task HangupAsync()
@@ -203,7 +205,7 @@ namespace Arke.IVR.CallObjects
             await DisposeOfCallServices();
         }
 
-        public event Action<ICall<T>, OnWorkflowStepEvent> OnWorkflowStep;
+        public event Action<ICall<ICallInfo>, OnWorkflowStepEvent> OnWorkflowStep;
 
         public virtual async Task ProcessCallLogicAsync()
         {
@@ -283,9 +285,9 @@ namespace Arke.IVR.CallObjects
         {
             try
             {
+                //TODO other json sources
                 var jsonObject =
-                    File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(),
-                                     $"{ArkeCallFlowService<T>.GetConfigValue("appSettings:Application")}.json"));
+                    File.ReadAllText(Path.Join(AppContext.BaseDirectory, $"{ArkeCallFlowService<T>.GetConfigValue("appSettings:Application")}.json"));
                 DslProcessor.Dsl = await Task.Factory
                     .StartNew(() => JsonConvert.DeserializeObject<CallFlowDsl>(
                         jsonObject).GetStepsFromDsl())
@@ -344,7 +346,7 @@ namespace Arke.IVR.CallObjects
 
         private async Task StartTheCallFlow()
         {
-            await CallStateMachine.FireAsync(Trigger.StartCallFlow);
+            await CallStateMachine.FireAsync(IStateMachineTrigger.StartCallFlow);
         }
 
         public async Task StopHoldingBridgeAsync()

@@ -17,6 +17,7 @@ namespace Arke.SipEngine.CallObjects
 {
     public interface ICall<T>
     {
+        IStateMachine<IStateMachineState, IStateMachineTrigger> CallStateMachine { get; set; }
         Guid CallId { get; set; }
         T CallState { get; set; }
         Dictionary<string,string> LogData { get; }
@@ -36,10 +37,10 @@ namespace Arke.SipEngine.CallObjects
         Task ProcessCallLogicAsync();
         Task StartCallRecordingAsync();
         Task StopCallRecordingAsync();
-        Task FireStateChange(Trigger trigger);
+        Task FireStateChange(IStateMachineTrigger trigger);
         void AddStepToIncomingProcessQueue(int stepNumber);
         void AddStepToOutgoingProcessQueue(int stepNumber);
-        State GetCurrentState();
+        IStateMachineState GetCurrentState();
         event Action<ICall<T>, OnWorkflowStepEvent> OnWorkflowStep;
         void SetCallLanguage(LanguageData languageData);
         Task<IBridge> CreateBridgeAsync(BridgeType bridgeType);

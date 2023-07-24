@@ -84,7 +84,7 @@ namespace Arke.IVR.Input
         public async void AriClient_OnChannelDtmfReceivedEvent(ISipApiClient sipApiClient, DtmfReceivedEvent dtmfReceivedEvent)
         {
             DigitTimeoutTimer.Stop();
-            if (_call.GetCurrentState() == State.LanguagePrompts)
+            if (_call.GetCurrentState() == IStateMachineState.LanguagePrompts)
                 return;
             if (!ShouldProcessDigit(dtmfReceivedEvent))
                 return;
@@ -94,7 +94,7 @@ namespace Arke.IVR.Input
 
             CaptureDigitIfInValidState(dtmfReceivedEvent);
 
-            if (_call.GetCurrentState() == State.PlayingInterruptiblePrompt)
+            if (_call.GetCurrentState() == IStateMachineState.PlayingInterruptiblePrompt)
                 await _promptPlayer.StopPromptAsync();
 
             await ProcessDigitsReceived();
@@ -123,7 +123,7 @@ namespace Arke.IVR.Input
 
         public async Task FailCaptureWhenTimeoutExpires()
         {
-            if (_call.GetCurrentState() != State.CapturingInput)
+            if (_call.GetCurrentState() != IStateMachineState.CapturingInput)
                 return;
 
             if (_call.CallState.InputRetryCount > _settings.MaxRetryCount && _settings.MaxRetryCount > 0)
@@ -136,7 +136,7 @@ namespace Arke.IVR.Input
                 AddStepToProperQueue(_settings.NoAction);
             }
 
-            await _call.FireStateChange(Trigger.FailedInputCapture);
+            await _call.FireStateChange(IStateMachineTrigger.FailedInputCapture);
         }
 
         private void AddStepToProperQueue(int step)
@@ -166,9 +166,9 @@ namespace Arke.IVR.Input
 
         public void CaptureDigitIfInValidState(DtmfReceivedEvent e)
         {
-            if (_call.GetCurrentState() == State.PlayingInterruptiblePrompt ||
-                _call.GetCurrentState() == State.CallFlow ||
-                _call.GetCurrentState() == State.CapturingInput)
+            if (_call.GetCurrentState() == IStateMachineState.PlayingInterruptiblePrompt ||
+                _call.GetCurrentState() == IStateMachineState.CallFlow ||
+                _call.GetCurrentState() == IStateMachineState.CapturingInput)
                 DigitsReceived += e.Digit;
         }
 
@@ -209,7 +209,7 @@ namespace Arke.IVR.Input
                     AddStepToProperQueue(_settings.NextStep);
                     _call.CallState.InputData = DigitsReceived.Substring(0, DigitsReceived.Length - 1);
                     ResetInputRetryCount();
-                    await _call.FireStateChange(Trigger.InputReceived);
+                    await _call.FireStateChange(IStateMachineTrigger.InputReceived);
                     return;
                 }
             }
@@ -219,7 +219,7 @@ namespace Arke.IVR.Input
                 AddStepToProperQueue(_settings.NextStep);
                 _call.CallState.InputData = DigitsReceived.Substring(0, DigitsReceived.Length);
                 ResetInputRetryCount();
-                await _call.FireStateChange(Trigger.InputReceived);
+                await _call.FireStateChange(IStateMachineTrigger.InputReceived);
                 return;
             }
             else if (!string.IsNullOrEmpty(_settings.SetValueAs))
@@ -228,7 +228,7 @@ namespace Arke.IVR.Input
                 _call.CallState.InputData = DigitsReceived;
                 ResetInputRetryCount();
                 AddStepToProperQueue(_settings.NextStep);
-                await _call.FireStateChange(Trigger.InputReceived);
+                await _call.FireStateChange(IStateMachineTrigger.InputReceived);
                 return;
             }
 
@@ -261,7 +261,7 @@ namespace Arke.IVR.Input
                     AddStepToProperQueue(_settings.Invalid);
                 }
             }
-            await _call.FireStateChange(Trigger.InputReceived);
+            await _call.FireStateChange(IStateMachineTrigger.InputReceived);
         }
     }
 }

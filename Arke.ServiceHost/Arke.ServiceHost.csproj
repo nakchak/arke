@@ -40,6 +40,7 @@
     <ProjectReference Include="..\Arke.ManagementApi\Arke.ManagementApi.csproj" />
     <ProjectReference Include="..\Arke.SipEngine\Arke.SipEngine.csproj" />
     <ProjectReference Include="..\Arke.Steps\Arke.Steps.csproj" />
+    <ProjectReference Include="..\sample\Arke.SampleProject\Arke.SampleProject.csproj" />
   </ItemGroup>
 
   <ItemGroup>
