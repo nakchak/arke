@@ -19,7 +19,7 @@ namespace Arke.SampleProject
         public void RegisterServices(Container container)
         {
             container.Register<SampleCallState>();
-            container.Register(typeof(ICallFlowService<ICallInfo>), typeof(ArkeCallFlowService<SampleCallState>), Lifestyle.Singleton);
+            container.Register<ICallFlowService<ICallInfo>, ArkeCallFlowService<SampleCallState>>(Lifestyle.Singleton);
             container.Register(typeof(ICall<ICallInfo>), typeof(ArkeCall<SampleCallState>), Lifestyle.Transient);
         }
     }

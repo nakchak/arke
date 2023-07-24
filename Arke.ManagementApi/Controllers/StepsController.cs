@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Arke.DependencyInjection;
 using Arke.DSL.Extensions;
 using Arke.DSL.Step;
+using Arke.SipEngine.Api;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +19,7 @@ namespace Arke.ManagementApi.Controllers
     //[Authorize]
     [Produces("application/json")]
     [Route("api/steps")]
-    public class StepsController : ControllerBase
+    public class StepsController : ControllerBase, IManagementAPIController
     {
         [HttpGet]
         [EnableCors("ArkeAllowedOrigins")]

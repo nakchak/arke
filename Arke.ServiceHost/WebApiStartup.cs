@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using Arke.DependencyInjection;
 using Arke.ManagementApi.Controllers;
@@ -13,6 +14,7 @@ using SimpleInjector.Integration.AspNetCore.Mvc;
 using Microsoft.Identity.Web;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using System.Linq;
+using Arke.SipEngine.Api;
 using SimpleInjector;
 
 namespace Arke.ServiceHost
@@ -30,21 +32,20 @@ namespace Arke.ServiceHost
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var assembly = typeof(StepsController).GetTypeInfo().Assembly;
-            var part = new AssemblyPart(assembly);
-            
-            services.AddMvc((options =>
-            {
-                options.EnableEndpointRouting = false;
-            })).ConfigureApplicationPartManager(apm =>
-            {
-                apm.ApplicationParts.Add(part);
-                
-            });
+            var mvc = services.AddMvc((options => { options.EnableEndpointRouting = false;}));
 
-            //services.AddMicrosoftIdentityWebApiAuthentication(Configuration, "AzureAd");
-            
-            
+            AppDomain.CurrentDomain.GetAssemblies()//Get all the assemblies in the app domain
+                .SelectMany(_ => _.GetTypes()).Distinct()//Get all the contained types and remove dups
+                .Where(t => !t.IsAbstract && !t.IsInterface && t.GetInterfaces().Any(i => i == typeof(IManagementAPIController)))//Filter for non abstract classes that implement IWebApiController
+                .Select(_ => new AssemblyPart(_.Assembly))//Select results as AssemblyParts
+                .Union(new[] { new AssemblyPart(typeof(StepsController).GetTypeInfo().Assembly) })//Union the management API Assembly to the results
+                .Distinct()//Remove duplicates
+                .ToList()//Cast to list for foreach extension method
+                .ForEach(_ => mvc.ConfigureApplicationPartManager(apm => apm.ApplicationParts.Add(_)));//Add the assemblyparts to the MVC Builder object
+
+            services.AddMicrosoftIdentityWebApiAuthentication(Configuration, "AzureAd");
+
+
             var corsOrigins = Configuration.GetSection("appSettings:corsOrigins").GetChildren().ToArray().Select(c => c.Value).ToArray();
             services.AddCors(options =>
             {

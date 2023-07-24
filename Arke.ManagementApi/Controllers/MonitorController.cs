@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Arke.SipEngine;
+using Arke.SipEngine.Api;
 using Arke.SipEngine.CallObjects;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +13,8 @@ namespace Arke.ManagementApi.Controllers
     [Produces("application/json")]
     [Route("api/monitor")]
     [ApiController]
-    public class MonitorController : ControllerBase
+    public class MonitorController : ControllerBase, IManagementAPIController
+    {
     {
         private readonly ICallFlowService<ICallInfo> _engine;
 

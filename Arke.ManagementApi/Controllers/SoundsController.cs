@@ -12,7 +12,8 @@ namespace Arke.ManagementApi.Controllers
     //[Authorize]
     [Produces("application/json")]
     [Route("api/sounds")]
-    public class SoundsController : ControllerBase
+    public class SoundsController : ControllerBase, IManagementAPIController
+    {
     {
         private readonly ISoundsApi soundsApi;
 
